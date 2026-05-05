@@ -17,7 +17,21 @@ function Show-Logo {
 "@ -ForegroundColor Green
 }
 
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "[!] Lütfen bu betiği YÖNETİCİ olarak çalıştırın!" -ForegroundColor Red
+    pause
+    exit
+}
+
 Show-Logo
+
+
+if (Get-Process -Name "Steam" -ErrorAction SilentlyContinue) {
+    Write-Host "[*] Steam açık algılandı, kapatılıyor..." -ForegroundColor Yellow
+    Get-Process -Name "Steam" | Stop-Process -Force
+    Start-Sleep -Seconds 2 
+}
+
 
 
 try {
