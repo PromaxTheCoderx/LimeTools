@@ -19,7 +19,24 @@ function Show-Logo {
 
 Show-Logo
 
-$installPath = "$env:AppData\LimeSniffers"
+
+try {
+    $steamPath = (Get-ItemProperty -Path "HKCU:\Software\Valve\Steam").SteamPath
+    if (!$steamPath) {
+        $steamPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam").InstallPath
+    }
+} catch {
+    $steamPath = $null
+}
+
+if ($steamPath) {
+    $installPath = $steamPath
+    Write-Host "[+] Steam yolu tespit edildi: $installPath" -ForegroundColor Green
+} else {
+    $installPath = "$env:AppData\LimeSniffers"
+    Write-Host "[!] Steam yolu bulunamadı, varsayılan klasör kullanılıyor: $installPath" -ForegroundColor Yellow
+}
+
 $dllUrl = "https://github.com/PromaxTheCoderx/LimeTools/releases/download/v1/payload.dll"
 
 try {
@@ -29,8 +46,8 @@ try {
     }
 
     Write-Host "[*] LimeSniffers DLL indiriliyor..." -ForegroundColor Cyan
-    # Not: InfinityFree'den indirirken sorun çıkarsa DLL'i de GitHub'a atmanı öneririm
     Invoke-WebRequest -Uri $dllUrl -OutFile "$installPath\LimeSniffers.dll" -UseBasicParsing
+
 
     Write-Host "[+] Kurulum başarıyla tamamlandı!" -ForegroundColor Green
     Write-Host "[!] Lütfen Steam'i yeniden başlatın." -ForegroundColor Yellow
